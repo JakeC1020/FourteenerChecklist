@@ -1,5 +1,6 @@
 package io.jakec.fourteenerchecklist.fourteeners;
 
+import android.content.Context;
 import android.support.annotation.Nullable;
 
 import org.w3c.dom.Document;
@@ -7,7 +8,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +18,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 public class XmlFourteenerDaoImpl implements FourteenerDao {
     private final String xmlSource = "peaks.xml";
     private final String xmlNodeName = "peak";
+
+    private Context myContext;
+
+    public XmlFourteenerDaoImpl(Context myContext) {
+        this.myContext = myContext;
+    }
 
     @Override
     public List<Fourteener> getAllFourteeners() {
@@ -57,10 +64,10 @@ public class XmlFourteenerDaoImpl implements FourteenerDao {
     }
 
     private NodeList getPeakNodeList() throws Exception {
-        File xmlFile = new File(this.xmlSource);
+        InputStream inputStream = this.myContext.getAssets().open(this.xmlSource);
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-        Document document = documentBuilder.parse(xmlFile);
+        Document document = documentBuilder.parse(inputStream);
         document.getDocumentElement().normalize();
 
         return document.getElementsByTagName(xmlNodeName);
@@ -87,10 +94,10 @@ public class XmlFourteenerDaoImpl implements FourteenerDao {
     @Nullable
     private Fourteener getFourteenerFromElementNode(Element currentElement) {
         try {
-            int id = Integer.parseInt(currentElement.getAttribute("rank"));
-            String name = currentElement.getAttribute("name");
-            String range = currentElement.getAttribute("range");
-            int elevation = Integer.parseInt(currentElement.getAttribute("elevation"));
+            int id = Integer.parseInt(currentElement.getElementsByTagName("id").item(0).getTextContent());
+            String name = currentElement.getElementsByTagName("name").item(0).getTextContent();
+            String range = currentElement.getElementsByTagName("range").item(0).getTextContent();
+            int elevation = Integer.parseInt(currentElement.getElementsByTagName("elevation").item(0).getTextContent());
 
             return new Fourteener(id, name, range, elevation);
         } catch (NumberFormatException e) {
